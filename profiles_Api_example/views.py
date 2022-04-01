@@ -1,6 +1,6 @@
 from email import message
 from django.shortcuts import render
-from rest_framework import status
+from rest_framework import status, viewsets
 from profiles_Api_example import serializers
 from rest_framework.views import APIView, Response
 
@@ -37,3 +37,65 @@ class helloApiView(APIView):
                 serializer.errors,
                 status = status.HTTP_400_BAD_REQUEST
             )
+
+    def put(self, request, pk=None):
+        """maneja actualizar un objeto"""
+        return Response({'method':'PUT'})
+
+    def patch(self, request, pk=None):
+        """maneja actualizar parcialmente un objeto"""
+        return Response({'method':'PATCH'})
+
+    def delete(self, request, pk=None):
+        """maneja borrar un objeto"""
+        return Response({'method':'DELETE'})
+
+
+    #VIEW SET
+
+class helloViewSet(viewsets.ViewSet):
+
+    serializers_class = serializers.HelloSerializer
+
+    def list(self, request):
+        a_viewset = [
+            'usamos acciones  (list, create, retrieve, update, partial_upate)',
+            'automaticamente mapea a los URLs usando RRouters',
+            'provee mas funcionalidad con menos codigo',
+        ]
+    
+        return Response({'message ': 'hello', 'a_viewset': a_viewset})
+
+    
+    def create(self, request):
+        """crear nuevo mensaje de hola mundo"""
+
+        serializer = self.serializers_class(data=request.data)
+
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            message = f'hola {name}'
+            return Response({'message':message})
+
+        else :
+            return Response(
+                serializer.errors,
+                status = status.HTTP_400_BAD_REQUEST
+            )
+       
+
+    def retrieve(self, request, pk=None):
+        """obtiene un objeto y su id"""
+        return Response({'http_method':'GET'})
+
+    def update(self, request, pk=None):
+        """actualiza un objeto"""
+        return Response({'http_method':'PUT'})
+
+    def partial_update(self, request, pk=None):
+        """actualizar parcialmente un objeto"""
+        return Response({'http_method':'PATCH'})
+
+    def destroy(self, request, pk=None):
+        """ borrar un objeto"""
+        return Response({'http_method':'DELETE'})
