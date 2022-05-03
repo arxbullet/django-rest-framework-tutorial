@@ -1,4 +1,3 @@
-from email import message
 from django.shortcuts import render
 from rest_framework import status, viewsets
 from profiles_Api_example import serializers
