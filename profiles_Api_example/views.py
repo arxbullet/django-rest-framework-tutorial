@@ -1,13 +1,18 @@
-from django.shortcuts import render
-from rest_framework import status, viewsets
-from profiles_Api_example import serializers
+from ast import Is
+from rest_framework import status, viewsets, filters
+from profiles_Api_example import serializers, models, permissions
 from rest_framework.views import APIView, Response
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
 
 # Create your views here.
 class helloApiView(APIView):
     """Api view de prueba """
 
-    serializers_class = serializers.HelloSerializer
+    serializers_class = serializers.HelloSerializer 
 
     def get(self, request, format=None):
         'retornar lista de caracteristicas del api view'
@@ -98,3 +103,33 @@ class helloViewSet(viewsets.ViewSet):
     def destroy(self, request, pk=None):
         """ borrar un objeto"""
         return Response({'http_method':'DELETE'})
+
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """crear y actualizar perfiles"""
+    serializer_class = serializers.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.UpdateOwnProfile,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name','email')#agregamos coma para que python sepa que es una tupla
+    
+class UserLoginApiView(ObtainAuthToken):
+    '''crear tokens de autenticacion de usuario'''
+
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+class UserProfileFeedViewSet(viewsets.ModelViewSet):
+    '''Maneja el crear, leer y actualizar el profile fit'''
+
+    serializer_class = serializers.ProfileItemSerializers
+    queryset = models.ProfileFeedItem.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.UpdateOwnStatus,
+                          IsAuthenticatedOrReadOnly) #si no queremos que no se lea sin autenticarse cambiaremos esto por isAutenticated
+   # filter_backends = (filters.SearchFilter,)
+   # search_fields = ('name','email')#agregamos coma para que python sepa que es una tupla
+
+    def perform_create(self, serializer):
+       '''setea el perfil de usuario para el usuario autenticado'''
+       serializer.save(user_profile=self.request.user)
